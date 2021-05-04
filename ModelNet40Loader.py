@@ -44,7 +44,7 @@ class ModelNet40Cls(data.Dataset):
         if download and not os.path.exists(self.data_dir):
             zipfile = os.path.join(BASE_DIR, os.path.basename(self.url))
             subprocess.check_call(
-                shlex.split("curl {} -o {}".format(self.url, zipfile))
+                shlex.split("curl {} -o {} -k".format(self.url, zipfile))
             )
 
             subprocess.check_call(
@@ -84,7 +84,11 @@ class ModelNet40Cls(data.Dataset):
 
     def __len__(self):
         return self.points.shape[0]
-
+        # if self.train:
+        #     return 2000
+        # else:
+        #     # return self.points.shape[0]
+        #     return 1000
     def set_num_points(self, pts):
         self.num_points = pts
         self.actual_number_of_points = pts
@@ -114,15 +118,15 @@ if __name__ == "__main__":
     print(len(dset))
     dloader = torch.utils.data.DataLoader(dset, batch_size=64, shuffle=True)
 
-    for i, Data in enumerate(dloader, 0):
-        real_point, target = Data
-        print('1')
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        real_point = real_point.to(device)
-        real_point2_idx = utils.farthest_point_sample(real_point,512)
-        real_point2 = utils.index_points(real_point,real_point2_idx)
-        real_point3_idx = utils.farthest_point_sample(real_point,256)
-        real_point3 = utils.index_points(real_point,real_point3_idx)
+    # for i, Data in enumerate(dloader, 0):
+    #     real_point, target = Data
+    #     print('1')
+    #     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    #     real_point = real_point.to(device)
+    #     real_point2_idx = utils.farthest_point_sample(real_point,512)
+    #     real_point2 = utils.index_points(real_point,real_point2_idx)
+    #     real_point3_idx = utils.farthest_point_sample(real_point,256)
+    #     real_point3 = utils.index_points(real_point,real_point3_idx)
         
 #        model1 = real_point[0].numpy()
 #        model2 = real_point2[0].numpy()
