@@ -100,16 +100,25 @@ checkpoint = torch.load(str(experiment_dir) + '/checkpoints/ckpt.pt')
 classifier.load_state_dict(checkpoint)
 classifier = classifier.eval().eval()
 
+acc_dict = {}
+name_id_map = {}
+f = open('./modelnet40_ply_hdf5_2048/shape_names.txt')
+for i in range(40):
+    cls_name = f.readline().strip()
+    name_id_map[i] = cls_name
+    acc_dict[cls_name] = {'crop_acc':[], 'complete_acc':[]}
+
 n = 0
 crop_acc = []
 complete_acc = []
+center_id = 9
 for i, data in enumerate(test_dataloader, 0):
     n = n + 1
     print(i)
     real_point, target = data      
-    np_crop = np.loadtxt('./test_example/crop_txt_l'+str(target.item())+'_'+str(n)+'.txt', delimiter=',')
-    np_fake = np.loadtxt('./test_example/fake_txt_l'+str(target.item())+'_'+str(n)+'.txt', delimiter=',')
-    np_real = np.loadtxt('./test_example/real_txt_l'+str(target.item())+'_'+str(n)+'.txt', delimiter=',')
+    np_crop = np.loadtxt('test_example/'+'%02d/'%(center_id)+str(n)+'_'+'crop_label'+str(target.item())+'.txt', delimiter=';')
+    np_fake = np.loadtxt('test_example/'+'%02d/'%(center_id)+str(n)+'_'+'crop_label'+str(target.item())+'.txt', delimiter=';')
+    np_real = np.loadtxt('test_example/'+'%02d/'%(center_id)+str(n)+'_'+'crop_label'+str(target.item())+'.txt', delimiter=';')
     # np.savetxt('test_example/crop_txt_l'+str(target.item())+'_'+str(n)+'.txt', np_crop, fmt = "%f,%f,%f")
     # np.savetxt('test_example/fake_txt_l'+str(target.item())+'_'+str(n)+'.txt', np_fake, fmt = "%f,%f,%f")
     # np.savetxt('test_example/real_txt_l'+str(target.item())+'_'+str(n)+'.txt', np_real, fmt = "%f,%f,%f")
@@ -125,9 +134,10 @@ for i, data in enumerate(test_dataloader, 0):
     pred_choice = pred.data.max(1)[1]
     if target.item() == pred_choice.item():
         crop_acc.append(1)
+        acc_dict[name_id_map[target.item()]]['crop_acc'].append(1)
     else:
         crop_acc.append(0)
-
+        acc_dict[name_id_map[target.item()]]['crop_acc'].append(0)
     points = rs((np_completed), 1024)
     points = torch.Tensor(points).cuda().unsqueeze(0)
     points = points.transpose(2, 1)
@@ -136,8 +146,15 @@ for i, data in enumerate(test_dataloader, 0):
     pred_choice = pred.data.max(1)[1]
     if target.item() == pred_choice.item():
         complete_acc.append(1)
+        acc_dict[name_id_map[target.item()]]['complete_acc'].append(1)
     else:
         complete_acc.append(0)
+        acc_dict[name_id_map[target.item()]]['complete_acc'].append(0)
     # print('target: ', target.item(), 'p++ prediction: ', pred_choice.item())
+print('center id: ', center_id)
 print('crop acc: ', sum(crop_acc)/len(crop_acc))
 print('complete acc: ', sum(complete_acc)/len(complete_acc))
+for key in acc_dict:
+    crop_acc = acc_dict[key]['crop_acc']
+    complete_acc = acc_dict[key]['complete_acc']
+    print(key,' crop_acc: ',sum(crop_acc)/len(crop_acc),' complete_acc: ', sum(complete_acc)/len(complete_acc))

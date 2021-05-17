@@ -26,7 +26,7 @@ from test_debugged.test import pointnet2_cls_ssg as pointnet2
 parser = argparse.ArgumentParser()
 #parser.add_argument('--dataset',  default='ModelNet40', help='ModelNet10|ModelNet40|ShapeNet')
 parser.add_argument('--dataroot',  default='dataset/train', help='path to dataset')
-parser.add_argument('--workers', type=int,default=0, help='number of data loading workers')
+parser.add_argument('--workers', type=int,default=8, help='number of data loading workers')
 parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
 parser.add_argument('--pnum', type=int, default=2048, help='the point number of a sample')
 parser.add_argument('--crop_point_num',type=int,default=512,help='0 means do not use else use with this weight')
@@ -132,6 +132,8 @@ for i, data in enumerate(test_dataloader, 0):
     index = random.sample(choice,1)
     distance_list = []
     p_center = index[0]
+    center_id = 9
+    # p_center = choice[center_id]
     for num in range(opt.pnum):
         distance_list.append(distance_squre(real_point[0,0,num],p_center))
     distance_order = sorted(enumerate(distance_list), key = lambda x:x[1])
@@ -188,9 +190,9 @@ for i, data in enumerate(test_dataloader, 0):
     # np.savetxt('test_example/crop_l'+str(target.item())+'_'+str(n)+'.csv', np_crop, fmt = "%f,%f,%f")
     # np.savetxt('test_example/fake_l'+str(target.item())+'_'+str(n)+'.csv', np_fake, fmt = "%f,%f,%f")
     # np.savetxt('test_example/real_l'+str(target.item())+'_'+str(n)+'.csv', np_real, fmt = "%f,%f,%f")
-    np.savetxt('test_example/crop_txt_l'+str(target.item())+'_'+str(n)+'.txt', np_crop, fmt = "%f,%f,%f")
-    np.savetxt('test_example/fake_txt_l'+str(target.item())+'_'+str(n)+'.txt', np_fake, fmt = "%f,%f,%f")
-    np.savetxt('test_example/real_txt_l'+str(target.item())+'_'+str(n)+'.txt', np_real, fmt = "%f,%f,%f")
+    np.savetxt('test_example/'+'%02d/'%(center_id)+str(n)+'_'+'crop_label'+str(target.item())+'.txt', np_crop, fmt = "%f;%f;%f")
+    np.savetxt('test_example/'+'%02d/'%(center_id)+str(n)+'_'+'fake_label'+str(target.item())+'.txt', np_fake, fmt = "%f;%f;%f")
+    np.savetxt('test_example/'+'%02d/'%(center_id)+str(n)+'_'+'real_label'+str(target.item())+'.txt', np_real, fmt = "%f;%f;%f")
     # np_crop = np.array(np_crop)
     # np_completed = np.vstack((np_crop,np_fake))
     # # points = farthest_point_sample(np.array(np_crop), 1024)
@@ -207,3 +209,4 @@ for i, data in enumerate(test_dataloader, 0):
     #     acc.append(0)
     # print('target: ', target.item(), 'p++ prediction: ', pred_choice.item())
 # print('done: ', sum(acc)/len(acc))
+print('done')
